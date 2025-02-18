@@ -1,0 +1,71 @@
+name: Build and Deploy Dev
+
+on:
+  push:
+    branches:
+      - main  # Or your main development branch name
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          # Important: Fetch all history for proper tagging
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'your-node-version' # Replace with your Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build # Replace with your build command
+
+      - name: Determine next version (using semantic-release or similar)
+        id: version
+        uses: semantic-release/github@v2 # Or a similar action
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branches: main # or your development branch
+
+      - name: Create Git tag (if new release)
+        if: steps.version.outputs.new_release_published == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git tag v${{ steps.version.outputs.version }}
+          git push --tags
+
+      - name: Deploy to Dev (example using SSH)
+        if: github.ref == 'refs/heads/main'  # Only deploy on pushes to main
+        uses: appleboy/ghaction-ssh@master
+        with:
+          host: ${{ secrets.DEV_SERVER_IP }}
+          username: ${{ secrets.DEV_SERVER_USERNAME }}
+          key: ${{ secrets.DEV_SERVER_PRIVATE_KEY }}
+          port: ${{ secrets.DEV_SERVER_PORT || 22 }} # Optional port
+          script: |
+            # Example deployment script:
+            cd /path/to/your/dev/app
+            git pull origin main # or your development branch
+            npm install --production # Install production dependencies
+            npm run build
+            # Restart your application (e.g., pm2 restart app)
+            pm2 restart your-app-name # Or your preferred method
+
+
+      - name: Create/Update Dev branch (Alternative to direct deployment)
+        if: github.ref == 'refs/heads/main' && steps.version.outputs.new_release_published != 'true' # Only on pushes to main and if no new release
+        run: |
+          git checkout -b dev || git checkout dev # Create or switch to dev branch
+          git merge main # Merge changes from main into dev
+          git push origin dev --force # Push changes to dev (force-push with caution)
