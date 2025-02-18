@@ -17,6 +17,9 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "kumar.dahal@outlook.com"
+          
+          permissions:
+          contents: write
 
       - name: Create or Update DEV Branch
         run: |
