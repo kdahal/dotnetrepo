@@ -42,8 +42,7 @@ jobs:
           echo "TAG_NAME=$new_tag" >> $GITHUB_ENV
 
       - name: Push DEV Branch and Tag
-        run: |
-         git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/kdahal/dotnetrepo.git  
+        run: |  
          git push origin dev
          git tag $TAG_NAME
          git push origin $TAG_NAME
