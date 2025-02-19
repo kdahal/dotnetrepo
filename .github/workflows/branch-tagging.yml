@@ -43,6 +43,10 @@ jobs:
 
       - name: Push DEV Branch and Tag
         run: |
-          git push origin dev
-          git tag $TAG_NAME
-          git push origin $TAG_NAME
+         git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/kram/dotnetrepo.git  
+         git push origin dev
+         git tag $TAG_NAME
+         git push origin $TAG_NAME
+
+         
+        
