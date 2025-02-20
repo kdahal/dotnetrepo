@@ -1,71 +1,59 @@
-name: Build and Deploy Dev
+name: Build and Tag DEV
 
 on:
   push:
     branches:
-      - main  # Or your main development branch name
-  pull_request:
-    branches:
       - dev
 
 jobs:
-  build-and-deploy:
+  build-and-tag:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          # Important: Fetch all history for proper tagging
-          fetch-depth: 0
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 'your-node-version' # Replace with your Node.js version
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build project
-        run: npm run build # Replace with your build command
-
-      - name: Determine next version (using semantic-release or similar)
-        id: version
-        uses: semantic-release/github@v2 # Or a similar action
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          branches: main # or your development branch
-
-      - name: Create Git tag (if new release)
-        if: steps.version.outputs.new_release_published == 'true'
+      - name: Setup Git
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git tag v${{ steps.version.outputs.version }}
-          git push --tags
+          git config --global user.email "github-actions@github.com"
 
-      - name: Deploy to Dev (example using SSH)
-        if: github.ref == 'refs/heads/main'  # Only deploy on pushes to main
-        uses: appleboy/ghaction-ssh@master
-        with:
-          host: ${{ secrets.DEV_SERVER_IP }}
-          username: ${{ secrets.DEV_SERVER_USERNAME }}
-          key: ${{ secrets.DEV_SERVER_PRIVATE_KEY }}
-          port: ${{ secrets.DEV_SERVER_PORT || 22 }} # Optional port
-          script: |
-            # Example deployment script:
-            cd /path/to/your/dev/app
-            git pull origin main # or your development branch
-            npm install --production # Install production dependencies
-            npm run build
-            # Restart your application (e.g., pm2 restart app)
-            pm2 restart your-app-name # Or your preferred method
-
-
-      - name: Create/Update Dev branch (Alternative to direct deployment)
-        if: github.ref == 'refs/heads/main' && steps.version.outputs.new_release_published != 'true' # Only on pushes to main and if no new release
+      - name: Create or Update DEV Branch
         run: |
-          git checkout -b dev || git checkout dev # Create or switch to dev branch
-          git merge main # Merge changes from main into dev
-          git push origin dev --force # Push changes to dev (force-push with caution)
+          if git show-ref --quiet refs/heads/dev; then
+            echo "DEV branch exists. Checking out..."
+              git checkout dev
+            else
+              echo "Creating DEV branch..."
+              git checkout -b dev
+            fi
+
+      - name: Auto Increment Tag
+        run: |
+          # Fetch all tags
+          git fetch --tags
+        
+          # Get the latest dev tag
+          latest_tag=$(git tag -l "dev-*" --sort=-v:refname | head -n 1)
+            
+          # If no tag exists, start from dev-1.0.0
+          if [[ -z "$latest_tag" ]]; then
+            new_tag="dev-1.0.0"
+          else
+            # Extract numeric version components
+          version=$(echo "$latest_tag" | sed 's/dev-//')
+            IFS='.' read -r major minor patch <<< "$version"
+              
+          # Increment patch version
+            new_tag="dev-${major}.${minor}.$((patch + 1))"
+          fi
+        
+            echo "New Tag: $new_tag"
+            echo "TAG_NAME=$new_tag" >> $GITHUB_ENV
+        
+      - name: Push DEV Branch and Tag
+        run: |
+          git push origin dev
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
+
