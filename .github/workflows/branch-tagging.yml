@@ -1,12 +1,9 @@
-
-name: Build and Tag new-tagging-branch
-
+name: Build and Tag DEV
 
 on:
   push:
     branches:
       - dev
-
 
 jobs:
   build-and-tag:
@@ -21,25 +18,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions@github.com"
 
-
-      - name: Create or Update new-tagging-branch Branch
-        run: |
-          if git show-ref --quiet refs/heads/new-tagging-branch; then
-            echo "new-tagging-branch branch exists. Checking out..."
-              git checkout new-tagging-branch
-            else
-              echo "Creating new-tagging-branch branch..."
-              git checkout -b new-tagging-branch
-
-      - name: Create or Update dev Branch
+      - name: Create or Update DEV Branch
         run: |
           if git show-ref --quiet refs/heads/dev; then
-            echo "dev branch exists. Checking out..."
+            echo "DEV branch exists. Checking out..."
               git checkout dev
             else
-              echo "Creating dev branch..."
+              echo "Creating DEV branch..."
               git checkout -b dev
-
             fi
 
       - name: Auto Increment Tag
@@ -47,21 +33,6 @@ jobs:
           # Fetch all tags
           git fetch --tags
         
-
-          # Get the latest new-tagging-branch tag
-          latest_tag=$(git tag -l "new-tagging-branch-*" --sort=-v:refname | head -n 1)
-            
-          # If no tag exists, start from new-tagging-branch-1.0.0
-          if [[ -z "$latest_tag" ]]; then
-            new_tag="new-tagging-branch-1.0.0"
-          else
-            # Extract numeric version components
-          version=$(echo "$latest_tag" | sed 's/new-tagging-branch-//')
-            IFS='.' read -r major minor patch <<< "$version"
-              
-          # Increment patch version
-            new_tag="new-tagging-branch-${major}.${minor}.$((patch + 1))"
-
           # Get the latest dev tag
           latest_tag=$(git tag -l "dev-*" --sort=-v:refname | head -n 1)
             
@@ -75,18 +46,12 @@ jobs:
               
           # Increment patch version
             new_tag="dev-${major}.${minor}.$((patch + 1))"
-
           fi
         
             echo "New Tag: $new_tag"
             echo "TAG_NAME=$new_tag" >> $GITHUB_ENV
         
-
-      - name: Push new-tagging-branch Branch and Tag
-        run: |
-          git push origin new-tagging-branch
-
-      - name: Push dev Branch and Tag
+      - name: Push DEV Branch and Tag
         run: |
           git push origin dev
           git tag $TAG_NAME
