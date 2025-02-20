@@ -3,9 +3,10 @@ name: Publish NuGet Package
 on:
   push:
     branches:
-      - dev
+      - nuget-build-publish-deploy
     paths:
       - 'WebApplication1/**/*.csproj'
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
