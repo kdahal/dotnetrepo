@@ -1,9 +1,9 @@
-name: Build and Tag DEV
+name: Build and Tag New-githuba-action-workflow
 
 on:
   push:
     branches:
-      - dev
+      - New-githuba-action-workflow
 
 jobs:
   build-and-tag:
@@ -18,14 +18,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions@github.com"
 
-      - name: Create or Update DEV Branch
+      - name: Create or Update New-githuba-action-workflow Branch
         run: |
-          if git show-ref --quiet refs/heads/dev; then
-            echo "DEV branch exists. Checking out..."
-              git checkout dev
+          if git show-ref --quiet refs/heads/New-githuba-action-workflow; then
+            echo "New-githuba-action-workflow branch exists. Checking out..."
+              git checkout New-githuba-action-workflow
             else
-              echo "Creating DEV branch..."
-              git checkout -b dev
+              echo "Creating New-githuba-action-workflow branch..."
+              git checkout -b New-githuba-action-workflow
             fi
 
       - name: Auto Increment Tag
@@ -33,27 +33,27 @@ jobs:
           # Fetch all tags
           git fetch --tags
         
-          # Get the latest dev tag
-          latest_tag=$(git tag -l "dev-*" --sort=-v:refname | head -n 1)
+          # Get the latest New-githuba-action-workflow tag
+          latest_tag=$(git tag -l "New-githuba-action-workflow-*" --sort=-v:refname | head -n 1)
             
-          # If no tag exists, start from dev-1.0.0
+          # If no tag exists, start from New-githuba-action-workflow-1.0.0
           if [[ -z "$latest_tag" ]]; then
-            new_tag="dev-1.0.0"
+            new_tag="New-githuba-action-workflow-1.0.0"
           else
             # Extract numeric version components
-          version=$(echo "$latest_tag" | sed 's/dev-//')
+          version=$(echo "$latest_tag" | sed 's/New-githuba-action-workflow-//')
             IFS='.' read -r major minor patch <<< "$version"
               
           # Increment patch version
-            new_tag="dev-${major}.${minor}.$((patch + 1))"
+            new_tag="New-githuba-action-workflow-${major}.${minor}.$((patch + 1))"
           fi
         
             echo "New Tag: $new_tag"
             echo "TAG_NAME=$new_tag" >> $GITHUB_ENV
         
-      - name: Push DEV Branch and Tag
+      - name: Push New-githuba-action-workflow Branch and Tag
         run: |
-          git push origin dev
+          git push origin New-githuba-action-workflow
           git tag $TAG_NAME
           git push origin $TAG_NAME
 
