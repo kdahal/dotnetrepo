@@ -3,7 +3,7 @@ name: Publish NuGet Package
 on:
   push:
     branches:
-      - nuget-build-publish-deploy
+      - dev
     paths:
       - 'WebApplication1/**/*.csproj'
 
