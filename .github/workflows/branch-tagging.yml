@@ -1,9 +1,9 @@
-name: Build and Tag New-githuba-action-workflow
+name: Build and Tag new-tagging-branch
 
 on:
   push:
     branches:
-      - New-githuba-action-workflow
+      - new-tagging-branch
 
 jobs:
   build-and-tag:
@@ -18,14 +18,14 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions@github.com"
 
-      - name: Create or Update New-githuba-action-workflow Branch
+      - name: Create or Update new-tagging-branch Branch
         run: |
-          if git show-ref --quiet refs/heads/New-githuba-action-workflow; then
-            echo "New-githuba-action-workflow branch exists. Checking out..."
-              git checkout New-githuba-action-workflow
+          if git show-ref --quiet refs/heads/new-tagging-branch; then
+            echo "new-tagging-branch branch exists. Checking out..."
+              git checkout new-tagging-branch
             else
-              echo "Creating New-githuba-action-workflow branch..."
-              git checkout -b New-githuba-action-workflow
+              echo "Creating new-tagging-branch branch..."
+              git checkout -b new-tagging-branch
             fi
 
       - name: Auto Increment Tag
@@ -33,27 +33,27 @@ jobs:
           # Fetch all tags
           git fetch --tags
         
-          # Get the latest New-githuba-action-workflow tag
-          latest_tag=$(git tag -l "New-githuba-action-workflow-*" --sort=-v:refname | head -n 1)
+          # Get the latest new-tagging-branch tag
+          latest_tag=$(git tag -l "new-tagging-branch-*" --sort=-v:refname | head -n 1)
             
-          # If no tag exists, start from New-githuba-action-workflow-1.0.0
+          # If no tag exists, start from new-tagging-branch-1.0.0
           if [[ -z "$latest_tag" ]]; then
-            new_tag="New-githuba-action-workflow-1.0.0"
+            new_tag="new-tagging-branch-1.0.0"
           else
             # Extract numeric version components
-          version=$(echo "$latest_tag" | sed 's/New-githuba-action-workflow-//')
+          version=$(echo "$latest_tag" | sed 's/new-tagging-branch-//')
             IFS='.' read -r major minor patch <<< "$version"
               
           # Increment patch version
-            new_tag="New-githuba-action-workflow-${major}.${minor}.$((patch + 1))"
+            new_tag="new-tagging-branch-${major}.${minor}.$((patch + 1))"
           fi
         
             echo "New Tag: $new_tag"
             echo "TAG_NAME=$new_tag" >> $GITHUB_ENV
         
-      - name: Push New-githuba-action-workflow Branch and Tag
+      - name: Push new-tagging-branch Branch and Tag
         run: |
-          git push origin New-githuba-action-workflow
+          git push origin new-tagging-branch
           git tag $TAG_NAME
           git push origin $TAG_NAME
 
