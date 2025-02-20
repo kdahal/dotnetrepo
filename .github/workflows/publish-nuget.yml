@@ -6,6 +6,7 @@ on:
       - dev
     paths:
       - 'WebApplication1/**/*.csproj'
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
