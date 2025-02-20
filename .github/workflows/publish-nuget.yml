@@ -3,9 +3,9 @@ name: Publish NuGet Package
 on:
   push:
     branches:
-      - main
+      - nuget-build-publish-deploy
     paths:
-      - 'src/**/*.csproj'
+      - 'WebApplication1/**/*.csproj'
 
 jobs:
   build-and-publish:
@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
-          source-url: https://nuget.pkg.github.com/YOUR_GITHUB_USERNAME/index.json
+          source-url: https://nuget.pkg.github.com/kdahal/index.json
 
       - name: Restore Dependencies
         run: dotnet restore
@@ -31,7 +31,7 @@ jobs:
         run: dotnet pack --configuration Release --no-build --output nupkgs
 
       - name: Push to GitHub Packages
-        run: dotnet nuget push nupkgs/*.nupkg --source "https://nuget.pkg.github.com/YOUR_GITHUB_USERNAME/index.json" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+        run: dotnet nuget push nupkgs/*.nupkg --source "https://nuget.pkg.github.com/kdahalE/index.json" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
 
       - name: Push to NuGet.org
         env:
