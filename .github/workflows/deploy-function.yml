@@ -1,0 +1,36 @@
+name: Deploy Function App
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**/*.cs'
+      - 'src/**/*.csproj'
+      - '.github/workflows/deploy-function.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build & Publish Function App
+        run: dotnet publish -c Release -o ./publish
+
+      - name: Deploy to Azure Function App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: "YOUR_FUNCTION_APP_NAME"
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          package: "./publish"
