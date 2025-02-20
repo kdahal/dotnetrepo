@@ -36,9 +36,9 @@ jobs:
           # Get the latest new-tagging-branch tag
           latest_tag=$(git tag -l "new-tagging-branch-*" --sort=-v:refname | head -n 1)
             
-          # If no tag exists, start from new-tagging-branch-1.0.0
+          # If no tag exists, start from new-tagging-branch-v1.0.0
           if [[ -z "$latest_tag" ]]; then
-            new_tag="new-tagging-branch-1.0.0"
+            new_tag="new-tagging-branch-v1.0.0"
           else
             # Extract numeric version components
           version=$(echo "$latest_tag" | sed 's/new-tagging-branch-//')
