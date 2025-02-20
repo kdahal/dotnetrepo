@@ -5,7 +5,7 @@ on:
     branches:
       - nuget-build-publish-deploy
     paths:
-      - 'WebApplication1/**/*.csproj'
+      - 'WebApplication1/*'
   workflow_dispatch:
 
 jobs:
