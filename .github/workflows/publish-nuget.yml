@@ -36,8 +36,3 @@ jobs:
         run: |
          dotnet nuget push nupkgs/*.nupkg --source "https://nuget.pkg.github.com/kdahal/index.json" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
 
-      - name: Push to NuGet.org
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          dotnet nuget push nupkgs/*.nupkg --source "https://api.nuget.org/v3/index.json" --api-key $NUGET_API_KEY --skip-duplicate
