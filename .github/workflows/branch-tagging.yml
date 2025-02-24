@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       should_tag:
+        type: choice
         description: "Should be tagged to GitHub? (true/false)"
         required: true
         options:
@@ -14,6 +15,7 @@ on:
         - 'true'
         default: "false"
       force_tag:
+        type: choice
         description: "Should the action be forced to tag? (true/false)"
         required: true
         options:
