@@ -1,0 +1,83 @@
+name: Tagging with New Codes
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+    inputs:
+      GITHUB_REF:
+        description: "GitHub Ref to evaluate."
+        required: true
+        default: "refs/tags/v1.4.4"
+      GITHUB_REF_COMPARISON:
+        description: "GitHub Ref used for comparison"
+        required: false
+
+jobs:
+  build-and-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures we fetch all history and tags
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Evaluate GitHub References
+        run: |
+          echo "GitHub Reference: ${{ github.event.inputs.GITHUB_REF }}"
+          if [[ -n "${{ github.event.inputs.GITHUB_REF_COMPARISON }}" ]]; then
+            echo "GitHub Ref for Comparison: ${{ github.event.inputs.GITHUB_REF_COMPARISON }}"
+          else
+            echo "No comparison reference provided."
+          fi
+
+      - name: Create or Update DEV Branch
+        run: |
+          if git show-ref --quiet refs/heads/dev; then
+            echo "DEV branch exists. Checking out..."
+            git checkout dev
+            git merge origin/dev --no-edit
+          else
+            echo "Creating DEV branch..."
+            git checkout -b dev
+          fi
+          git push origin dev
+
+      - name: Auto Increment Tag
+        id: tag_step
+        run: |
+          # Fetch all tags
+          git fetch --tags
+
+          # Get the latest dev tag
+          latest_tag=$(git tag -l "dev-*" --sort=-v:refname | head -n 1)
+
+          # If no tag exists, start from dev-1.0.0
+          if [[ -z "$latest_tag" ]]; then
+            new_tag="dev-1.0.0"
+          else
+            # Extract numeric version components
+            version=$(echo "$latest_tag" | sed 's/dev-//')
+            IFS='.' read -r major minor patch <<< "$version"
+
+            # Increment patch version
+            new_tag="dev-${major}.${minor}.$((patch + 1))"
+          fi
+
+          echo "New Tag: $new_tag"
+          echo "TAG_NAME=$new_tag" >> $GITHUB_ENV
+
+      - name: Push Tag to GitHub
+        if: github.event_name == 'push'
+        run: |
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
