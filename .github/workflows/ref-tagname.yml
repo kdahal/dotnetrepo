@@ -1,4 +1,4 @@
-name: Tagging with New Codes
+name: REF and Tagname
 
 on:
   push:
