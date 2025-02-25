@@ -1,0 +1,75 @@
+name: Tagging with New Codes
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+    inputs:
+      GITHUB_REF:
+        description: "GitHub Ref to evaluate (e.g., refs/heads/dev or refs/tags/v1.4.4)"
+        required: true
+        default: "refs/heads/dev"
+      TAG_NAME:
+        description: "Tag name to use (leave empty for auto-incrementing)"
+        required: false
+        default: ""
+
+jobs:
+  build-and-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures we fetch all history and tags
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Create or Update DEV Branch
+        run: |
+          git fetch origin dev || true
+          if git show-ref --quiet refs/heads/dev; then
+            echo "DEV branch exists. Checking out..."
+            git checkout dev
+            git pull origin dev
+          else
+            echo "Creating DEV branch..."
+            git checkout -b dev
+            git push origin dev
+          fi
+
+      - name: Determine Tag Name
+        id: tag_step
+        run: |
+          git fetch --tags
+
+          # Use TAG_NAME if provided, otherwise auto-increment
+          if [[ -n "${{ github.event.inputs.TAG_NAME }}" ]]; then
+            new_tag="${{ github.event.inputs.TAG_NAME }}"
+          else
+            latest_tag=$(git tag -l "dev-*" --sort=-v:refname | head -n 1)
+
+            if [[ -z "$latest_tag" ]]; then
+              new_tag="dev-1.0.0"
+            else
+              version=$(echo "$latest_tag" | sed 's/dev-//')
+              IFS='.' read -r major minor patch <<< "$version"
+              new_tag="dev-${major}.${minor}.$((patch + 1))"
+            fi
+          fi
+
+          echo "New Tag: $new_tag"
+          echo "TAG_NAME=$new_tag" >> $GITHUB_ENV
+
+      - name: Push DEV Branch and Tag
+        run: |
+          git push origin dev
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
