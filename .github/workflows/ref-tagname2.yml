@@ -1,3 +1,4 @@
+
 name: REF and Tagname
 
 on:
@@ -26,24 +27,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Ensures we fetch all history and tags
-
-      - name: Setup Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions@github.com"
-
-      - name: Create or Update testing-codes Branch
-        run: |
-          git fetch origin testing-codes || true
-          if git show-ref --quiet refs/heads/testing-codes; then
-            echo "testing-codes branch exists. Checking out..."
-            git checkout testing-codes
-            git pull origin testing-codes
-          else
-            echo "Creating testing-codes branch..."
-            git checkout -b testing-codes
-            git push origin testing-codes
-          fi
 
       - name: Determine Tag Name
         id: tag_step
