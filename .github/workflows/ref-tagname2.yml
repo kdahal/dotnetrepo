@@ -1,0 +1,58 @@
+
+name: REF and Tagname
+
+on:
+  push:
+    branches:
+      - testing-codes
+  workflow_dispatch:
+    inputs:
+      GITHUB_REF:
+        description: "GitHub Ref to evaluate (e.g., refs/heads/testing-codes or refs/tags/v1.4.4)"
+        required: true
+        default: "refs/heads/testing-codes"
+      TAG_NAME:
+        description: "Tag name to use (leave empty for auto-incrementing)"
+        required: false
+        default: ""
+
+jobs:
+  build-and-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures we fetch all history and tags
+
+      - name: Determine Tag Name
+        id: tag_step
+        run: |
+          git fetch --tags
+
+          # Use TAG_NAME if provided, otherwise auto-increment
+          if [[ -n "${{ github.event.inputs.TAG_NAME }}" ]]; then
+            new_tag="${{ github.event.inputs.TAG_NAME }}"
+          else
+            latest_tag=$(git tag -l "testing-codes-*" --sort=-v:refname | head -n 1)
+
+            if [[ -z "$latest_tag" ]]; then
+              new_tag="testing-codes-1.0.0"
+            else
+              version=$(echo "$latest_tag" | sed 's/testing-codes-//')
+              IFS='.' read -r major minor patch <<< "$version"
+              new_tag="testing-codes-${major}.${minor}.$((patch + 1))"
+            fi
+          fi
+
+          echo "New Tag: $new_tag"
+          echo "TAG_NAME=$new_tag" >> $GITHUB_ENV
+
+      - name: Push testing-codes Branch and Tag
+        run: |
+          git push origin testing-codes
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
