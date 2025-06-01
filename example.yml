@@ -69,8 +69,4 @@ jobs:
 #   env:
 #     AZURE_FUNCTION_APP_PUBLISH_PROFILE: ${{ secrets.AZURE_FUNCTION_APP_PUBLISH_PROFILE }}
 #
-#
-#
-#
-#
-#
+
