@@ -1,0 +1,76 @@
+# Generic Pipeline for Function App NuGet Package Publishing & Deployment to Azure
+
+name: Deploy-FunctionApp
+
+on:
+  push:
+    branches:
+      - main # Or your main branch name
+    paths:
+      - 'src/MyFunctionApp/**' # Path to your Function App project
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.x' # Or your .NET version
+
+      - name: Restore dependencies
+        run: dotnet restore src/MyFunctionApp/MyFunctionApp.csproj # Path to your .csproj file
+
+      - name: Build project
+        run: dotnet build src/MyFunctionApp/MyFunctionApp.csproj -c Release
+
+      - name: Pack NuGet package
+        run: dotnet pack src/MyFunctionApp/MyFunctionApp.csproj -c Release -o ./nupkg
+
+      - name: Publish NuGet package to GitHub Packages (Example)
+        uses: actions/upload-artifact@v3 # For local testing; replace with NuGet feed
+        with:
+          name: function-app-nuget
+          path: ./nupkg
+
+      # --- Deployment to Azure Function App ---
+      - name: Download NuGet package (If using GitHub Packages)
+        uses: actions/download-artifact@v3
+        with:
+          name: function-app-nuget
+          path: ./nupkg
+
+      - name: Deploy to Azure Function App
+        uses: azure/functions-action@v1 # Official Azure action
+        with:
+          app-name: ${{ secrets.AZURE_FUNCTION_APP_NAME }} # Your Function App name
+          package: './nupkg' # Path to the NuGet package
+          publish-type: zip # Important: Use zip for NuGet deployments
+          slot-name: production # Or a slot name like 'staging'
+
+        env: # Securely store secrets in GitHub repo settings
+          AZURE_FUNCTION_APP_PUBLISH_PROFILE: ${{ secrets.AZURE_FUNCTION_APP_PUBLISH_PROFILE }} # Or use service principal
+
+
+# Example of how to deploy directly without NuGet (if you don't need it)
+
+# - name: Deploy to Azure Function App (Direct Zip Deployment)
+#   uses: azure/functions-action@v1
+#   with:
+#     app-name: ${{ secrets.AZURE_FUNCTION_APP_NAME }}
+#     package: './src/MyFunctionApp/bin/Release/net6.0/publish' # Path to the publish directory
+#     publish-type: zip
+#     slot-name: production
+
+#   env:
+#     AZURE_FUNCTION_APP_PUBLISH_PROFILE: ${{ secrets.AZURE_FUNCTION_APP_PUBLISH_PROFILE }}
+#
+#
+#
+#
+#
+#
