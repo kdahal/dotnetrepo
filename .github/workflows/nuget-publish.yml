@@ -1,9 +1,6 @@
 
 name: Nuget Publish
 
-name: Deploy and Publish Function App
-
-
 on:
   push:
     branches:
@@ -111,54 +108,4 @@ jobs:
     #         echo "Failed to verify Function App deployment. Status code: $STATUS_CODE"
     #         exit 1
     #       fi
-
-        run: dotnet restore ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }}
-
-      - name: Build project
-        run: dotnet build ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }} -c Release
-
-      - name: Pack NuGet package
-        run: |
-          dotnet pack ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }} -c Release -o ./nupkg /p:PackageVersion=${{ github.event.inputs.nuget_version }}
-
-      - name: Publish NuGet package to GitHub Packages
-        run: |
-          dotnet nuget push "./nupkg/*.nupkg" \
-            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-            --api-key "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: Publish
-        run: dotnet publish ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }} -c Release -o ./publish
-
-      - name: Deploy to Azure Function App (Direct Zip Deployment)
-        uses: azure/functions-action@v1
-        with:
-          app-name: ${{ github.event.inputs.azure_functionapp_name }}
-          package: './publish'
-          publish-type: zip
-          slot-name: production
-        env:
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          RESOURCE_GROUP: ${{ github.event.inputs.azure_resource_group }}
-
-      - name: Wait for Function App to Start
-        if: success()
-        run: sleep 10
-
-      - name: Verify Deployment (HTTP)
-        if: success()
-        run: |
-          FUNCTION_APP_URL="https://${{ github.event.inputs.azure_functionapp_name }}.azurewebsites.net/api/YourFunctionEndpoint"
-          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$FUNCTION_APP_URL")
-          echo "Function App URL: $FUNCTION_APP_URL"
-          echo "HTTP Status Code: $STATUS_CODE"
-          if [ $STATUS_CODE -eq 200 ]; then
-            echo "Successfully verified Function App deployment!"
-          else
-            echo "Failed to verify Function App deployment. Status code: $STATUS_CODE"
-            exit 1
-          fi
-          
+    
