@@ -16,6 +16,7 @@ env: # Define environment variables for clarity and reusability
   FUNCTION_APP_PROJECT_PATH: 'WebApplication1/src' # Path to your Function App project directory
   FUNCTION_APP_PROJECT_NAME: 'WebApplication1' # Name of your Function App (e.g., MyFunctionApp, derived from .csproj name)
   DOTNET_VERSION: '9.x' # Your desired .NET version, e.g., '6.x', '8.x'
+  artifact_version: 1.0.0-beta
 
 permissions:
   contents: write # For creating GitHub Releases
@@ -28,7 +29,7 @@ jobs:
     outputs:
       zip_file_name: ${{ steps.zip_step.outputs.ZIP_FILE_NAME }} # Output the zip filename for later jobs
       artifact_checksum: ${{ steps.checksum_step.outputs.ARTIFACT_CHECKSUM }} # Output the checksum for later jobs
-      artifact_version: ${{ github.event.inputs.artifact_version }} # Output the version for later jobs
+      artifact_version: ${{ env.artifact_version }} # Output the version for later jobs
 
     steps:
       - name: Checkout code
@@ -52,7 +53,7 @@ jobs:
       - name: Zip published Function App (for GitHub Release)
         id: zip_step # Add an ID to this step to capture its output
         run: |
-          ZIP_FILE_NAME="${{ env.FUNCTION_APP_PROJECT_NAME }}-${{ github.event.inputs.artifact_version }}.zip"
+          ZIP_FILE_NAME="${{ env.FUNCTION_APP_PROJECT_NAME }}-${{ env.artifact_version }}.zip"
           zip -r $ZIP_FILE_NAME ./published-app
           echo "ZIP_FILE_NAME=$ZIP_FILE_NAME" >> $GITHUB_OUTPUT # Make available to subsequent steps in the same job
           echo "ZIP_FILE_NAME_FOR_ENV=$ZIP_FILE_NAME" >> $GITHUB_ENV # Also for general env access
@@ -69,11 +70,11 @@ jobs:
       - name: Create GitHub Release and Upload Artifacts
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.event.inputs.artifact_version }} # Tag for the release (e.g., v1.0.0)
-          name: Release v${{ github.event.inputs.artifact_version }} - ${{ env.FUNCTION_APP_PROJECT_NAME }}
+          tag_name: v${{ env.artifact_version }} # Tag for the release (e.g., v1.0.0)
+          name: Release v${{ env.artifact_version }} - ${{ env.FUNCTION_APP_PROJECT_NAME }}
           body: |
             Automated release of ${{ env.FUNCTION_APP_PROJECT_NAME }}.
-            Version: ${{ github.event.inputs.artifact_version }}
+            Version: ${{ env.artifact_version }}
             SHA256 Checksum: ${{ steps.checksum_step.outputs.ARTIFACT_CHECKSUM }}
           files: |
             ${{ env.ZIP_FILE_NAME_FOR_ENV }}
@@ -86,7 +87,7 @@ jobs:
       - name: Upload Deployment Artifact for Azure
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.FUNCTION_APP_PROJECT_NAME }}-published-app-${{ github.event.inputs.artifact_version }}
+          name: ${{ env.FUNCTION_APP_PROJECT_NAME }}-published-app-${{ env.artifact_version }}
           path: ./published-app
           retention-days: 5 # How long to keep the artifact (adjust as needed)
 
