@@ -1,4 +1,4 @@
-name: Full CI/CD: Build, Publish Artifact, and Deploy Function App
+name: Build, Publish Artifact, and Deploy Function App
 
 on:
   push:
