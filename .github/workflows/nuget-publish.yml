@@ -5,46 +5,38 @@ on:
     branches:
       - nuget-publish # Or your main branch
   workflow_dispatch:
-    # inputs:
-    #   azure_resource_group:
-    #     description: 'Azure Resource Group name'
-    #     required: true
-    #     type: string
-    #   azure_functionapp_name:
-    #     description: 'Name of the Azure Function App'
-    #     required: true
-    #     type: string
-    #   function_path:
-    #     description: 'Path to the Function App project within the repository (e.g., Let, mattress)'
-    #     required: true
-    #     type: string
-    #   package_name:
-    #     description: 'Name of the .csproj file (e.g., Let.csproj)'
-    #     required: true
-    #     type: string
-    #   nuget_version:
-    #     description: 'Version for the NuGet package'
-    #     required: true
-    #     type: string
-    #   dotnet_version:
-    #     description: 'Target .NET SDK version'
-    #     required: false
-    #     type: string
-    #     default: '6.0' # Or your preferred default version
+    inputs:
+      azure_resource_group:
+        description: 'Azure Resource Group name'
+        required: true
+        type: string
+      azure_functionapp_name:
+        description: 'Name of the Azure Function App'
+        required: true
+        type: string
+      function_path:
+        description: 'Path to the Function App project within the repository (e.g., Let, mattress)'
+        required: true
+        type: string
+      package_name:
+        description: 'Name of the .csproj file (e.g., Let.csproj)'
+        required: true
+        type: string
+      nuget_version:
+        description: 'Version for the NuGet package'
+        required: true
+        type: string
+      dotnet_version:
+        description: 'Target .NET SDK version'
+        required: false
+        type: string
+        default: '6.0' # Or your preferred default version
 
-# No longer defining environment variables here
-# env:
-#   AZURE_RESOURCES_GROUP: ${{ secrets.AZURE_RESOURCES_GROUP }}
-#   AZURE_FUNCTIONAPP_NAME: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
-#   FUNCTION_NAME_PATH: ${{ env.FUNCTION_NAME_PATH }}
-#   PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
-#   DOTNET_VERSION: ${{ env.DOTNET_VERSION }}
-
-env: # Define environment variables for clarity and reusability
-  FUNCTION_APP_PROJECT_PATH: 'WebApplication1/src' # Path to your Function App project directory
-  FUNCTION_APP_PROJECT_NAME: 'WebApplication1' # Name of your Function App (e.g., MyFunctionApp, derived from .csproj name)
-  DOTNET_VERSION: '9.x' # Your desired .NET version, e.g., '6.x', '8.x'
-  nuget_version: 1.0.0
+# env: # Define environment variables for clarity and reusability
+#   FUNCTION_APP_PROJECT_PATH: 'WebApplication1/src' # Path to your Function App project directory
+#   FUNCTION_APP_PROJECT_NAME: 'WebApplication1' # Name of your Function App (e.g., MyFunctionApp, derived from .csproj name)
+#   DOTNET_VERSION: '9.x' # Your desired .NET version, e.g., '6.x', '8.x'
+#   nuget_version: 1.0.0
 
 
 permissions:
@@ -61,25 +53,25 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: ${{ github.event.inputs.dotnet_version }}
 
       - name: Restore dependencies
-        run: dotnet restore ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }}.csproj
+        run: dotnet restore ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }}.csproj
 
       - name: Build project
-        run: dotnet build ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }}.csproj -c Release --no-restore
+        run: dotnet build ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }}.csproj -c Release --no-restore
 
       - name: Pack NuGet package
-        run: dotnet pack ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }}.csproj -c Release -o ./nupkg /p:PackageVersion=${{ env.nuget_version }}
+        run: dotnet pack ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }}.csproj -c Release -o ./nupkg /p:PackageVersion=${{ github.event.inputs.nuget_version }}
 
-      - name: List files for debugging
-        run: ls -R   
+    #   - name: List files for debugging
+    #     run: ls -R   
 
       - name: Publish NuGet package to GitHub Packages
         run: dotnet nuget push "./nupkg/*.nupkg" --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
 
     #   - name: Publish
-    #     run: dotnet publish ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }} -c Release -o ./publish
+    #     run: dotnet publish ${{ github.event.inputsFUNCTION_APP_PROJECT_PATH }}/${{ github.event.inputsFUNCTION_APP_PROJECT_NAME }} -c Release -o ./publish
 
     # #   - name: Deploy to Azure Function App (Direct Zip Deployment)
     # #     uses: azure/functions-action@v1
