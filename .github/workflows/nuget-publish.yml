@@ -71,7 +71,9 @@ jobs:
 
       - name: Pack NuGet package
         run: dotnet pack ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }}.csproj -c Release -o ./nupkg /p:PackageVersion=${{ env.nuget_version }}
-          
+
+      - name: List files for debugging
+        run: ls -R   
 
       - name: Publish NuGet package to GitHub Packages
         run: dotnet nuget push "./nupkg/*.nupkg" \
@@ -113,3 +115,4 @@ jobs:
     #         echo "Failed to verify Function App deployment. Status code: $STATUS_CODE"
     #         exit 1
     #       fi
+
