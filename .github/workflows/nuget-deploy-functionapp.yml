@@ -3,13 +3,13 @@ name: Build, Publish Artifact, and Deploy Function App
 on:
   push:
     branches:
-      - main # Trigger on pushes to main for automated full pipeline
+      - NuGet-deploy # Trigger on pushes to main for automated full pipeline
   workflow_dispatch: # Enable manual triggering
-    inputs:
-      artifact_version:
-        description: 'Version for the deployment artifact (e.g., 1.0.0, 1.0.0-beta)'
-        required: true
-        type: string
+#    inputs:
+#      artifact_version:
+#        description: 'Version for the deployment artifact (e.g., 1.0.0, 1.0.0-beta)'
+#        required: true
+#        type: string
       # You could add more inputs here for different environments (e.g., 'environment: Development/Staging/Production')
 
 env: # Define environment variables for clarity and reusability
