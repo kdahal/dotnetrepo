@@ -70,8 +70,8 @@ jobs:
         run: dotnet build ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }}.csproj -c Release --no-restore
 
       - name: Pack NuGet package
-        run: |
-          dotnet pack ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }} -c Release -o ./nupkg /p:PackageVersion=${{ env.nuget_version }}
+        run: dotnet pack ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }}.csproj -c Release -o ./nupkg /p:PackageVersion=${{ env.nuget_version }}
+          
 
       - name: Publish NuGet package to GitHub Packages
         run: |
