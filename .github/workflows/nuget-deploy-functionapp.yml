@@ -3,7 +3,7 @@ name: Build, Publish Artifact, and Deploy Function App
 on:
   push:
     branches:
-      - NuGet-deploy # Trigger on pushes to main for automated full pipeline
+      - dev # Trigger on pushes to main for automated full pipeline
   workflow_dispatch: # Enable manual triggering
 #    inputs:
 #      artifact_version:
