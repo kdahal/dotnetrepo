@@ -105,22 +105,22 @@ jobs:
           name: ${{ env.FUNCTION_APP_PROJECT_NAME }}-published-app-${{ needs.build-and-publish-artifact.outputs.artifact_version }}
           path: ./downloaded-app # Download to a new directory for deployment
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          # For OIDC, ensure you have 'id-token: write' permission at the job or workflow level
-          # If using service principal with client secret directly, ensure AZURE_CLIENT_SECRET is set in secrets.
+      # - name: Azure Login
+      #   uses: azure/login@v1
+      #   with:
+      #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      #     # For OIDC, ensure you have 'id-token: write' permission at the job or workflow level
+      #     # If using service principal with client secret directly, ensure AZURE_CLIENT_SECRET is set in secrets.
 
-      - name: Deploy to Azure Function App
-        uses: azure/functions-action@v1
-        with:
-          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
-          package: './downloaded-app' # Point to the downloaded artifact directory
-          publish-type: zip
-          slot-name: production # Or other slot name (e.g., 'staging' for a staging environment)
+      # - name: Deploy to Azure Function App
+      #   uses: azure/functions-action@v1
+      #   with:
+      #     app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+      #     package: './downloaded-app' # Point to the downloaded artifact directory
+      #     publish-type: zip
+      #     slot-name: production # Or other slot name (e.g., 'staging' for a staging environment)
 
       - name: Wait for Function App to Start
         if: success()
