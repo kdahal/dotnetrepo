@@ -1,8 +1,13 @@
+
+name: Nuget Publish
+
 name: Deploy and Publish Function App
+
 
 on:
   push:
     branches:
+      - nuget-publish # Or your main branch
       - dev # Or your main branch
   workflow_dispatch:
     inputs:
@@ -32,13 +37,13 @@ on:
         type: string
         default: '6.0' # Or your preferred default version
 
-# No longer defining environment variables here
-# env:
-#   AZURE_RESOURCES_GROUP: ${{ secrets.AZURE_RESOURCES_GROUP }}
-#   AZURE_FUNCTIONAPP_NAME: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
-#   FUNCTION_NAME_PATH: ${{ env.FUNCTION_NAME_PATH }}
-#   PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
-#   DOTNET_VERSION: ${{ env.DOTNET_VERSION }}
+
+# env: # Define environment variables for clarity and reusability
+#   FUNCTION_APP_PROJECT_PATH: 'WebApplication1/src' # Path to your Function App project directory
+#   FUNCTION_APP_PROJECT_NAME: 'WebApplication1' # Name of your Function App (e.g., MyFunctionApp, derived from .csproj name)
+#   DOTNET_VERSION: '9.x' # Your desired .NET version, e.g., '6.x', '8.x'
+#   nuget_version: 1.0.0
+
 
 permissions:
   contents: read
@@ -57,6 +62,56 @@ jobs:
           dotnet-version: ${{ github.event.inputs.dotnet_version }}
 
       - name: Restore dependencies
+
+        run: dotnet restore ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }}.csproj
+
+      - name: Build project
+        run: dotnet build ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }}.csproj -c Release --no-restore
+
+      - name: Pack NuGet package
+        run: dotnet pack ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }}.csproj -c Release -o ./nupkg /p:PackageVersion=${{ github.event.inputs.nuget_version }}
+
+    #   - name: List files for debugging
+    #     run: ls -R   
+
+      - name: Publish NuGet package to GitHub Packages
+        run: dotnet nuget push "./nupkg/*.nupkg" --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
+
+    #   - name: Publish
+    #     run: dotnet publish ${{ github.event.inputsFUNCTION_APP_PROJECT_PATH }}/${{ github.event.inputsFUNCTION_APP_PROJECT_NAME }} -c Release -o ./publish
+
+    #   - name: Deploy to Azure Function App (Direct Zip Deployment)
+    #     uses: azure/functions-action@v1
+    #     with:
+    #       app-name: ${{ github.event.inputs.azure_functionapp_name }}
+    #       package: './publish'
+    #       publish-type: zip
+    #       slot-name: production
+    #     env:
+    #       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    #       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+    #       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+    #       AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+    #       RESOURCE_GROUP: ${{ github.event.inputs.azure_resource_group }}
+
+    #   - name: Wait for Function App to Start
+    #     if: success()
+    #     run: sleep 10
+
+    #   - name: Verify Deployment (HTTP)
+    #     if: success()
+    #     run: |
+    #       FUNCTION_APP_URL="https://${{ github.event.inputs.azure_functionapp_name }}.azurewebsites.net/api/YourFunctionEndpoint"
+    #       STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$FUNCTION_APP_URL")
+    #       echo "Function App URL: $FUNCTION_APP_URL"
+    #       echo "HTTP Status Code: $STATUS_CODE"
+    #       if [ $STATUS_CODE -eq 200 ]; then
+    #         echo "Successfully verified Function App deployment!"
+    #       else
+    #         echo "Failed to verify Function App deployment. Status code: $STATUS_CODE"
+    #         exit 1
+    #       fi
+
         run: dotnet restore ${{ github.event.inputs.function_path }}/${{ github.event.inputs.package_name }}
 
       - name: Build project
@@ -106,3 +161,4 @@ jobs:
             echo "Failed to verify Function App deployment. Status code: $STATUS_CODE"
             exit 1
           fi
+          
