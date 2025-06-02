@@ -13,7 +13,7 @@ on:
       # You could add more inputs here for different environments (e.g., 'environment: Development/Staging/Production')
 
 env: # Define environment variables for clarity and reusability
-  FUNCTION_APP_PROJECT_PATH: 'WebApplication1/src/WebApplication1' # Path to your Function App project directory
+  FUNCTION_APP_PROJECT_PATH: 'WebApplication1/src' # Path to your Function App project directory
   FUNCTION_APP_PROJECT_NAME: 'WebApplication1' # Name of your Function App (e.g., MyFunctionApp, derived from .csproj name)
   DOTNET_VERSION: '9.x' # Your desired .NET version, e.g., '6.x', '8.x'
 
