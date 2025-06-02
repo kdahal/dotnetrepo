@@ -63,7 +63,7 @@ jobs:
           dotnet-version: ${{ env.dotnet_version }}
 
       - name: Restore dependencies
-        run: dotnet restore ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }}
+        run: dotnet restore ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }}.csproj
 
       - name: Build project
         run: dotnet build ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }} -c Release
