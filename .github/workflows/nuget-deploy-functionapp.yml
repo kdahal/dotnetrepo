@@ -141,7 +141,7 @@ jobs:
             exit 1 # Fail the workflow step if verification fails
           fi
 
-      - name: Post-Deployment Verification: Check SCM_COMMIT_ID (Optional but Recommended)
+      - name: Post-Deployment Verification - Check SCM_COMMIT_ID (Optional but Recommended)
         if: success()
         run: |
           # Retrieve the deployed SCM_COMMIT_ID from Azure Function App settings
