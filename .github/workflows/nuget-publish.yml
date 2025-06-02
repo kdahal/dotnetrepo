@@ -77,7 +77,8 @@ jobs:
         run: |
           dotnet nuget push "./nupkg/*.nupkg" \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-            --api-key "${{ secrets.GITHUB_TOKEN }}"
+            --api-key "${{ secrets.GITHUB_TOKEN }}" \
+            --skip-duplicate
 
     #   - name: Publish
     #     run: dotnet publish ${{ env.FUNCTION_APP_PROJECT_PATH }}/${{ env.FUNCTION_APP_PROJECT_NAME }} -c Release -o ./publish
